@@ -7,7 +7,7 @@
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"keywords": [],
-	"author": "",
+	"author": "anzerr",
 	"license": "ISC",
 	"dependencies": {
 		"think.library": "git+ssh://git@github.com:anzerr/think.library.git",
@@ -19,5 +19,17 @@
 	},
 	"eslintConfig": {
 		"extends": "eslint-config-basic"
-	}
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/anzerr/fs.watcher.git"
+	},
+	"engines": {
+		"node": ">= 0.10.0"
+	},
+	"types": "index.d.ts",
+	"bugs": {
+		"url": "https://github.com/anzerr/fs.watcher/issues"
+	},
+	"homepage": "https://github.com/anzerr/fs.watcher#readme"
 }
