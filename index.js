@@ -6,11 +6,12 @@ const path = require('path'),
 
 class Watcher extends require('events') {
 
-	constructor(home) {
+	constructor(home, exclude) {
 		super();
 		this._home = home;
 		this._map = {};
 		this._last = {};
+		this.exclude = exclude;
 		this.think = new Think(() => {
 			return this.scan(this._home).then(() => {
 				return this.removed();
@@ -66,7 +67,7 @@ class Watcher extends require('events') {
 					return fs.stat(file);
 				}).then((res) => {
 					let setup = Promise.resolve();
-					if (!this._map[file]) {
+					if (!this._map[file] && (!this.exclude || this.exclude(file))) {
 						this._map[file] = new Hook(file);
 						this._map[file].on('change', (r) => {
 							if (r[0] === 'change') {
