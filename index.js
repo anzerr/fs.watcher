@@ -91,6 +91,14 @@ class Watcher extends require('events') {
 		});
 	}
 
+	stop() {
+		for (let i in this._map) {
+			this._map[i].stop();
+		}
+		this.think.stop();
+		return Promise.resolve();
+	}
+
 }
 
 module.exports = Watcher;

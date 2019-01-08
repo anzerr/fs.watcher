@@ -22,6 +22,16 @@ class Hook extends require('events') {
 		});
 	}
 
+	close() {
+		try {
+			if (this._watcher) {
+				this._watcher.close();
+			}
+		} catch (e) {
+			// nothing
+		}
+	}
+
 }
 
 module.exports = Hook;
