@@ -59,35 +59,36 @@ class Watcher extends require('events') {
 		}
 	}
 
-	async scan(dir) {
-		let list = await fs.readdir(dir), p = Promise.resolve();
-		for (let i in list) {
-			((file) => {
-				p = p.then(() => {
-					return fs.stat(file);
-				}).then((res) => {
-					let setup = Promise.resolve();
-					if (!this._map[file] && (!this.exclude || this.exclude(file))) {
-						this._map[file] = new Hook(file);
-						this._map[file].on('change', (r) => {
-							if (r[0] === 'change') {
-								this.change(r[2]);
-							}
-							if (r[0] === 'add' && this._map[file]) {
-								this.emit('change', r);
-							}
-						});
-						setup = this._map[file].setup();
-					}
-
-					if (res.isDirectory()) {
-						return Promise.all([setup, this.scan(file)]);
-					}
-					return setup;
-				});
-			})(path.join(dir, list[i]));
+	hook(file) {
+		let setup = Promise.resolve();
+		if (!this._map[file] && (!this.exclude || this.exclude(file))) {
+			this._map[file] = new Hook(file);
+			this._map[file].on('change', (r) => {
+				if (r[0] === 'change') {
+					this.change(r[2]);
+				}
+				if (r[0] === 'add' && this._map[file]) {
+					this.emit('change', r);
+				}
+			});
+			setup = this._map[file].setup();
 		}
-		return p;
+		return setup;
+	}
+
+	scan(dir) {
+		return fs.stat(dir).then(async (res) => {
+			if (res.isDirectory()) {
+				let list = await fs.readdir(dir), p = Promise.resolve();
+				for (let i in list) {
+					((file) => {
+						p = p.then(() => Promise.all([this.hook(file), this.scan(file)]));
+					})(path.join(dir, list[i]));
+				}
+				return p;
+			}
+			return this.hook(dir);
+		});
 	}
 
 }
