@@ -15,7 +15,7 @@
 	},
 	"devDependencies": {
 		"eslint": "^5.10.0",
-		"eslint-config-basic": "git+ssh://git@github.com/anzerr/eslintrc.git"
+		"eslint-config-basic": "git+http://git@github.com/anzerr/eslintrc.git"
 	},
 	"eslintConfig": {
 		"extends": "eslint-config-basic"
