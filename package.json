@@ -10,12 +10,12 @@
 	"author": "anzerr",
 	"license": "ISC",
 	"dependencies": {
-		"think.library": "git+ssh://git@github.com:anzerr/think.library.git",
-		"fs.promisify": "git+ssh://git@github.com:anzerr/fs.promisify.git"
+		"think.library": "git+https://git@github.com/anzerr/think.library.git",
+		"fs.promisify": "git+https://git@github.com/anzerr/fs.promisify.git"
 	},
 	"devDependencies": {
 		"eslint": "^5.10.0",
-		"eslint-config-basic": "git+http://git@github.com/anzerr/eslintrc.git"
+		"eslint-config-basic": "git+https://git@github.com/anzerr/eslintrc.git"
 	},
 	"eslintConfig": {
 		"extends": "eslint-config-basic"
