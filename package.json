@@ -8,9 +8,9 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/anzerr/fs.watcher.git"
+		"url": "git@github.com:anzerr/fs.watcher.git"
 	},
-	"license": "ISC",
+	"license": "MIT",
 	"author": "anzerr",
 	"main": "index.js",
 	"types": "index.d.ts",
@@ -25,7 +25,7 @@
 		"fs.promisify": "git+https://git@github.com/anzerr/fs.promisify.git"
 	},
 	"devDependencies": {
-		"eslint": "^5.10.0",
+		"eslint": "5.11.1",
 		"eslint-config-basic": "git+https://git@github.com/anzerr/eslintrc.git"
 	},
 	"engines": {
