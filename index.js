@@ -91,9 +91,9 @@ class Watcher extends require('events') {
 		});
 	}
 
-	stop() {
+	close() {
 		for (let i in this._map) {
-			this._map[i].stop();
+			this._map[i].close();
 		}
 		this.think.stop();
 		return Promise.resolve();

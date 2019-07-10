@@ -5,6 +5,10 @@ const Watcher = require('./index.js'),
 // let cwd = process.cwd();
 let cwd = path.resolve('index.js');
 
-new Watcher(cwd).on('change', (r) => {
+const w = new Watcher(cwd).on('change', (r) => {
 	console.log('change', r);
 });
+
+setTimeout(() => {
+	w.close();
+}, 1000);

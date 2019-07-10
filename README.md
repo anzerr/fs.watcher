@@ -11,7 +11,7 @@ npm install --save git+https://git@github.com/anzerr/fs.watch.git
 ``` javascript
 const Watcher = require('fs.watcher');
 
-return new Watcher(process.cwd()).on('change', (r) => {
+let watch = new Watcher(process.cwd()).on('change', (r) => {
 	console.log('change', r);
 });
 ```
