@@ -1,6 +1,6 @@
 
 ### `Intro`
-Watch a directory and emit when a change/add/remove has happened to a file or folder
+Watch a directory and emit when a change/add/remove has happened to a file or folder.
 
 #### `Install`
 ``` bash
