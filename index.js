@@ -1,7 +1,9 @@
 
 const path = require('path'),
 	fs = require('fs.promisify'),
+	promise = require('promise.util'),
 	Think = require('think.library'),
+	safe = require('./src/safe'),
 	Hook = require('./src/hook.js');
 
 class Watcher extends require('events') {
@@ -14,7 +16,7 @@ class Watcher extends require('events') {
 		this.exclude = exclude;
 		this.think = new Think(() => {
 			return this.scan(this._home).then(() => {
-				return this.removed();
+				return (this._closed) ? this.close() : this.removed();
 			});
 		}, 500);
 	}
@@ -27,13 +29,10 @@ class Watcher extends require('events') {
 					c++;
 					return;
 				}
-				p = p.then(() => {
-					return fs.access(file).then(() => {
-						// still works
-					}).catch(() => {
-						this._map[file] = null;
-						this.emit('change', ['removed', file]);
-					});
+				p = p.then(() => fs.access(file)).catch(() => {
+					this._map[file].close();
+					this._map[file] = null;
+					this.emit('change', ['removed', file]);
 				});
 			})(i);
 		}
@@ -60,8 +59,7 @@ class Watcher extends require('events') {
 	}
 
 	hook(file) {
-		let setup = Promise.resolve();
-		if (!this._map[file] && (!this.exclude || this.exclude(file))) {
+		if (!this._map[file] && (!this.exclude || this.exclude(file)) && !this._closed) {
 			this._map[file] = new Hook(file);
 			this._map[file].on('change', (r) => {
 				if (r[0] === 'change') {
@@ -71,31 +69,43 @@ class Watcher extends require('events') {
 					this.emit('change', r);
 				}
 			});
-			setup = this._map[file].setup();
+			this._map[file].on('error', (err) => this.emit('error', err));
+			return this._map[file].setup();
 		}
-		return setup;
+		return Promise.resolve();
 	}
 
 	scan(dir) {
+		if (this._closed) {
+			return Promise.resolve();
+		}
 		return fs.stat(dir).then(async (res) => {
 			if (res.isDirectory()) {
-				let list = await fs.readdir(dir), p = Promise.resolve();
-				for (let i in list) {
-					((file) => {
-						p = p.then(() => Promise.all([this.hook(file), this.scan(file)]));
-					})(path.join(dir, list[i]));
-				}
-				return p;
+				return fs.readdir(dir).then((list) => {
+					return promise.each(list, (r) => {
+						const file = path.join(dir, r);
+						return Promise.all([
+							this.hook(file),
+							this.scan(file)
+						]);
+					}, 5);
+				});
 			}
 			return this.hook(dir);
 		});
 	}
 
 	close() {
+		console.log('close');
+		this._closed = true;
 		for (let i in this._map) {
-			this._map[i].close();
+			safe(() => {
+				if (this._map[i]) {
+					this._map[i].close();
+				}
+			});
 		}
-		this.think.stop();
+		safe(() => this.think.stop());
 		return Promise.resolve();
 	}
 

@@ -21,10 +21,14 @@
 		"extends": "eslint-config-basic"
 	},
 	"dependencies": {
-		"think.library": "git+https://git@github.com/anzerr/think.library.git",
-		"fs.promisify": "git+https://git@github.com/anzerr/fs.promisify.git"
+		"fs.promisify": "git+https://git@github.com/anzerr/fs.promisify.git",
+		"promise.util": "git+https://git@github.com/anzerr/promise.util.git",
+		"think.library": "git+https://git@github.com/anzerr/think.library.git"
 	},
 	"devDependencies": {
+		"fs.mkdirp": "git+https://git@github.com/anzerr/fs.mkdirp.git",
+		"fs.remove": "git+https://git@github.com/anzerr/fs.remove.git",
+		"unique.util": "git+https://git@github.com/anzerr/unique.util.git",
 		"eslint-config-basic": "git+https://git@github.com/anzerr/eslintrc.git"
 	},
 	"engines": {

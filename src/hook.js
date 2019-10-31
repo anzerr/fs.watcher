@@ -1,5 +1,6 @@
 
 const path = require('path'),
+	safe = require('./safe'),
 	fs = require('fs.promisify');
 
 class Hook extends require('events') {
@@ -7,6 +8,14 @@ class Hook extends require('events') {
 	constructor(file) {
 		super();
 		this._file = file;
+		this._hook = setInterval(() => {
+			safe(() => {
+				if (this._watcher) {
+					this._watcher.close();
+				}
+			});
+			this.setup();
+		}, 10 * 60 * 1000);
 	}
 
 	setup() {
@@ -16,20 +25,26 @@ class Hook extends require('events') {
 			if (!dir) {
 				this.emit('change', ['add', dir, this._file]);
 			}
+			if (this._watcher) {
+				safe(() => this._watcher.close());
+			}
 			this._watcher = fs.watch(this._file, {recursive: true}, (eventType, filename) => {
-				this.emit('change', [eventType, dir, (dir) ? path.join(this._file, filename) : this._file]);
+				let file = (dir && filename) ? path.join(this._file, filename) : this._file;
+				fs.stat(file).then(() => {
+					this.emit('change', [eventType, dir, file]);
+				}).catch(() => {});
 			});
+			this._watcher.on('error', (err) => this.emit('error', err));
 		});
 	}
 
 	close() {
-		try {
+		safe(() => {
 			if (this._watcher) {
 				this._watcher.close();
 			}
-		} catch (e) {
-			// nothing
-		}
+		});
+		clearInterval(this._hook);
 	}
 
 }
