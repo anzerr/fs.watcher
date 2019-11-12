@@ -15,7 +15,7 @@ class Watcher extends require('events') {
 		this._last = {};
 		this._pool = {};
 		this.exclude = exclude;
-		this.think = new Think(() => this.scan(this._home), 30 * 1000);
+		this.think = new Think(() => this.scan(this._home, 1, 100), 30 * 1000);
 		this.scan(this._home, 5);
 	}
 
@@ -69,7 +69,7 @@ class Watcher extends require('events') {
 					clearTimeout(this._pool[r[3]]);
 					this._pool[r[3]] = setTimeout(() => {
 						this.removed(r[3]).catch((err) => this.emit('error', err));
-						this.scan(r[3]).catch((err) => {});
+						this.scan(r[3]).catch(() => {});
 					}, 200);
 				}
 				if (r[0] === 'change') {
@@ -88,14 +88,15 @@ class Watcher extends require('events') {
 		return Promise.resolve();
 	}
 
-	scan(dir, scale = 1) {
+	scan(dir, scale = 1, sleep = 0) {
 		if (this._closed) {
 			return Promise.resolve();
 		}
-		return Promise.all([
-			fs.stat(dir),
-			this.hook(dir)
-		]).then((r) => r[0]).then(async (res) => {
+		const wait = [fs.stat(dir), this.hook(dir)];
+		if (sleep) {
+			wait.push(new Promise((resolve) => setTimeout(resolve, sleep)));
+		}
+		return Promise.all(wait).then((r) => r[0]).then(async (res) => {
 			if (res.isDirectory()) {
 				return fs.readdir(dir).then((list) => {
 					return promise.each(list, (r) => this.scan(path.join(dir, r), scale), scale);
