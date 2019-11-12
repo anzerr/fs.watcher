@@ -15,7 +15,7 @@ class Watcher extends require('events') {
 		this._last = {};
 		this._pool = {};
 		this.exclude = exclude;
-		this.think = new Think(() => this.scan(this._home, 1, 100), 30 * 1000);
+		this.think = new Think(() => this.scan(this._home, 1, 10), 30 * 1000);
 		this.scan(this._home, 5);
 	}
 
