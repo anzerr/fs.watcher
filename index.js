@@ -13,15 +13,13 @@ class Watcher extends require('events') {
 		this._home = home;
 		this._map = {};
 		this._last = {};
+		this._pool = {};
 		this.exclude = exclude;
-		this.think = new Think(() => {
-			return this.scan(this._home).then(() => {
-				return (this._closed) ? this.close() : this.removed();
-			});
-		}, 500);
+		this.think = new Think(() => this.scan(this._home), 30 * 1000);
+		this.scan(this._home, 5);
 	}
 
-	removed() {
+	removed(filter) {
 		let p = Promise.resolve(), c = 0;
 		for (let i in this._map) {
 			((file) => {
@@ -29,10 +27,15 @@ class Watcher extends require('events') {
 					c++;
 					return;
 				}
+				if (filter && file.indexOf(filter) === -1) {
+					return;
+				}
 				p = p.then(() => fs.access(file)).catch(() => {
-					this._map[file].close();
-					this._map[file] = null;
-					this.emit('change', ['removed', file]);
+					if (this._map[file]) {
+						this._map[file].close();
+						this._map[file] = null;
+						this.emit('change', ['removed', file]);
+					}
 				});
 			})(i);
 		}
@@ -62,11 +65,21 @@ class Watcher extends require('events') {
 		if (!this._map[file] && (!this.exclude || this.exclude(file)) && !this._closed) {
 			this._map[file] = new Hook(file);
 			this._map[file].on('change', (r) => {
+				if (r[3]) {
+					clearTimeout(this._pool[r[3]]);
+					this._pool[r[3]] = setTimeout(() => {
+						this.removed(r[3]).catch((err) => this.emit('error', err));
+						this.scan(r[3]).catch((err) => {});
+					}, 200);
+				}
 				if (r[0] === 'change') {
-					this.change(r[2]);
+					clearTimeout(this._pool[r[2]]);
+					this._pool[r[2]] = setTimeout(() => this.change(r[2]), 200);
+					return;
 				}
 				if (r[0] === 'add' && this._map[file]) {
 					this.emit('change', r);
+					return;
 				}
 			});
 			this._map[file].on('error', (err) => this.emit('error', err));
@@ -75,29 +88,27 @@ class Watcher extends require('events') {
 		return Promise.resolve();
 	}
 
-	scan(dir) {
+	scan(dir, scale = 1) {
 		if (this._closed) {
 			return Promise.resolve();
 		}
-		return fs.stat(dir).then(async (res) => {
+		return Promise.all([
+			fs.stat(dir),
+			this.hook(dir)
+		]).then((r) => r[0]).then(async (res) => {
 			if (res.isDirectory()) {
 				return fs.readdir(dir).then((list) => {
-					return promise.each(list, (r) => {
-						const file = path.join(dir, r);
-						return Promise.all([
-							this.hook(file),
-							this.scan(file)
-						]);
-					}, 5);
+					return promise.each(list, (r) => this.scan(path.join(dir, r), scale), scale);
 				});
 			}
-			return this.hook(dir);
 		});
 	}
 
 	close() {
-		console.log('close');
 		this._closed = true;
+		for (let i in this._pool) {
+			clearTimeout(this._pool[i]);
+		}
 		for (let i in this._map) {
 			safe(() => {
 				if (this._map[i]) {

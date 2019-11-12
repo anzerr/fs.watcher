@@ -9,6 +9,11 @@ const Watcher = require('./index.js'),
 	key = require('unique.util'),
 	path = require('path');
 
+process.on('unhandledRejection', (err, prom) => {
+	console.log('unhandledRejection', err, prom);
+	process.exit(1);
+});
+
 const rand = () => key.random({length: 6});
 const sleep = (n) => new Promise((resolve) => setTimeout(resolve, n));
 const randomN = (n) => Math.floor(Math.random() * n);
@@ -53,11 +58,13 @@ remove('test').then(() => {
 	const change = {removed: 0, change: 0};
 	return sleep(1000).then(() => {
 		assert.equal(count, 5 * 5);
+		console.log('built folders', count);
 		return build();
 	}).then(() => {
 		return sleep(1000);
 	}).then(() => {
 		assert.equal(count, 5 * 5 * 2);
+		console.log('added more folders', count);
 		let wait = [];
 		log = {removed: 0, change: 0};
 		for (let i in files) {
@@ -75,31 +82,37 @@ remove('test').then(() => {
 	}).then(() => {
 		assert.equal(change.removed, log.removed);
 		assert.equal((log.change > change.change), true);
+		console.log('run write/remove changes', change);
 		watcher.close();
 		return new Promise((resolve) => {
 			log = {};
-			let last = null;
+			let last = null, done = false;
 			watcher = new Watcher(process.cwd()).on('change', (r) => {
 				log[r[0]] = (log[r[0]] || 0) + 1;
 				clearTimeout(last);
 				last = setTimeout(() => {
+					done = true;
 					resolve();
 				}, 1000);
 			});
 			watcher.on('error', () => {});
 		});
 	}).then(() => {
+		console.log('started second watcher');
 		return remove('node_modules');
 	}).then(() => {
-		console.log('running npm');
+		console.log('removed "node_modules" running "npm install"');
 		return new Promise((resolve) => {
-			exec('npm install', () => resolve());
+			exec('npm ci', (err, stdout, stderr) => {
+				console.log(err, stdout, stderr);
+				resolve();
+			});
 		});
 	}).then(() => {
+		console.log('npm done changes', log);
 		safe(() => watcher.close());
-		for (let i in log) {
-			assert.equal((log[i] > 1000), true);
-		}
+		assert.equal((log.add > 1000), true);
+		assert.equal((log.removed > 1000), true);
 		process.exit(0);
 	});
 }).catch(error);

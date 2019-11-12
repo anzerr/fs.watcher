@@ -16,7 +16,7 @@
 	"types": "index.d.ts",
 	"scripts": {
 		"linter": "eslint index.js src/**",
-		"test": "echo \"TODO\""
+		"test": "node test.js"
 	},
 	"eslintConfig": {
 		"extends": "eslint-config-basic"
