@@ -103,7 +103,7 @@ remove('test').then(() => {
 	}).then(() => {
 		console.log('removed "node_modules" running "npm install"');
 		return new Promise((resolve) => {
-			exec('npm ci', (err, stdout, stderr) => {
+			exec('npm i', {cwd: __dirname}, (err, stdout, stderr) => {
 				console.log(err, stdout, stderr);
 				resolve();
 			});
@@ -111,8 +111,8 @@ remove('test').then(() => {
 	}).then(() => {
 		console.log('npm done changes', log);
 		safe(() => watcher.close());
-		assert.equal((log.add > 1000), true);
-		assert.equal((log.removed > 1000), true);
+		assert.equal((log.add > 500), true);
+		assert.equal((log.removed > 500), true);
 		process.exit(0);
 	});
 }).catch(error);
