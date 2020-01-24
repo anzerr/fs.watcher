@@ -78,8 +78,9 @@ remove('test').then(() => {
 		}
 		return Promise.all(wait);
 	}).then(() => {
-		return sleep(1000);
+		return sleep(3000);
 	}).then(() => {
+		console.log(change, log);
 		assert.equal(change.removed, log.removed);
 		assert.equal((log.change > change.change), true);
 		console.log('run write/remove changes', change);
