@@ -1,7 +1,14 @@
 {
 	"name": "fs.watcher",
 	"version": "1.0.14",
-	"keywords": [],
+	"description": "event based directory watcher",
+	"keywords": [
+		"event",
+		"fs",
+		"nodejs",
+		"util",
+		"watcher"
+	],
 	"homepage": "https://github.com/anzerr/fs.watcher#readme",
 	"bugs": {
 		"url": "https://github.com/anzerr/fs.watcher/issues"
