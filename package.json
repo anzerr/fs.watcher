@@ -1,6 +1,6 @@
 {
 	"name": "fs.watcher",
-	"version": "1.0.17",
+	"version": "1.0.18",
 	"description": "event based directory watcher",
 	"keywords": [
 		"event",
